@@ -35,8 +35,9 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
+bool paused = false;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 20.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -172,8 +173,7 @@ int main() {
     // load textures
     // -------------
     unsigned int earthTexture = loadTexture(FileSystem::getPath("resources/objects/earth/Diffuse_2K.png").c_str());
-    unsigned int cloudTexture = loadTexture(FileSystem::getPath("resources/objects/earth/Clouds_2K.png").c_str());
-    unsigned int nightTexture = loadTexture(FileSystem::getPath("resources/objects/earth/Night_lights_2K.png").c_str());
+    unsigned int specTexture = loadTexture(FileSystem::getPath("resources/objects/earth/Ocean_Mask_2K.png").c_str());
 
     unsigned int moonTexture = loadTexture(FileSystem::getPath("resources/objects/Moon/Diffuse_2K.png").c_str());
 
@@ -197,135 +197,151 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
+    glfwSetKeyCallback(window, key_callback);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // per-frame time logic
-        // --------------------
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        // input
-        // -----
         processInput(window);
+        while(!paused){
+            // per-frame time logic
+            // --------------------
+            float currentFrame = glfwGetTime();
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
 
-        // render
-        // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // input
+            // -----
+            //processInput(window);
 
-        // draw scene as normal
-        //shader.use();
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        //shader.setMat4("model", model);
-        //shader.setMat4("view", view);
-        //shader.setMat4("projection", projection);
+            // render
+            // ------
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //earth
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cloudTexture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, earthTexture);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, nightTexture);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, moonTexture);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, sunTexture);
-
-        glBindVertexArray(0);
-
-        earthShader.use();
-        earthShader.setInt("texture1", 0);
-        earthShader.setInt("texture2", 1);
-        earthShader.setInt("texture3", 2);
-
-        // view/projection transformations
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        view = camera.GetViewMatrix();
-
-        // earth
-
-        earthShader.setMat4("projection", projection);
-        earthShader.setMat4("view", view);
-
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f));   // rotation around the sun
-        model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f));                    //translating it away from the sun
-
-        model = glm::rotate(model, (float)glm::radians(23.5f), glm::vec3(0.0f, 0.0f, 1.0f));    //earths lean
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));      //rotation around self y axis
-
-        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// downscaling
-        earthShader.setMat4("model", model);
-        ourModel.Draw(earthShader);
-
-        //moon
-        moonShader.use();
-        moonShader.setInt("texture1", 3);
-
-        moonShader.setMat4("projection", projection);
-        moonShader.setMat4("view", view);
-
-        model = glm::mat4(1.0f);
+            // draw scene as normal
+            //shader.use();
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            //shader.setMat4("model", model);
+            //shader.setMat4("view", view);
+            //shader.setMat4("projection", projection);
 
 
-        model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the sun
-        model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f)); //translation to earths location
 
-        model = glm::rotate(model, (float)glfwGetTime()*3, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around earth
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)); //translating away from earth
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, earthTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, specTexture);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, moonTexture);
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, sunTexture);
 
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around self axis
-        model = glm::scale(model, glm::vec3(0.04f, 0.04f, 0.04f)); //downscaling
-        moonShader.setMat4("model", model);
-        ourModel.Draw(moonShader);
+            glBindVertexArray(0);
 
-        //sun
-        sunShader.use();
-        sunShader.setInt("texture1", 4);
-
-        sunShader.setMat4("projection", projection);
-        sunShader.setMat4("view", view);
-
-        model = glm::mat4(1.0f);
-        //model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
-        //model = glm::translate(model, glm::vec3(6.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        sunShader.setMat4("model", model);
-        ourModel.Draw(sunShader);
-
-        // draw skybox as last
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxShader.use();
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
-        //mars
-
-        // skybox cube
-        glBindVertexArray(skyboxVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        glDepthFunc(GL_LESS); // set depth function back to default
+            earthShader.use();
+            earthShader.setInt("material.diffuse", 0);
+            earthShader.setInt("material.specular", 1);
 
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
+            // view/projection transformations
+            projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            view = camera.GetViewMatrix();
+
+            // earth
+
+            earthShader.setVec3("light.position", 0.0f, 0.0f, 0.0f);
+            earthShader.setVec3("viewPos", camera.Position);
+
+            earthShader.setMat4("projection", projection);
+            earthShader.setMat4("view", view);
+            earthShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+            earthShader.setVec3("light.diffuse", 0.6f, 0.6f, 0.6f);
+            earthShader.setVec3("light.specular", 0.1f, 0.1f, 0.1f);
+            earthShader.setFloat("material.shininess", 2.0f);
+
+            model = glm::mat4(1.0f);
+            model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f));   // rotation around the sun
+            model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f));                    //translating it away from the sun
+
+            model = glm::rotate(model, (float)glm::radians(23.5f), glm::vec3(0.0f, 0.0f, 1.0f));    //earths lean
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));      //rotation around self y axis
+
+            model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// downscaling
+            earthShader.setMat4("model", model);
+            ourModel.Draw(earthShader);
+
+            //moon
+            moonShader.use();
+            moonShader.setInt("texture1", 2);
+
+            moonShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+            moonShader.setVec3("lightPos", 0.0f, 0.0f, 0.0f);
+            moonShader.setVec3("viewPos", camera.Position);
+
+            moonShader.setMat4("projection", projection);
+            moonShader.setMat4("view", view);
+
+            model = glm::mat4(1.0f);
+
+
+            model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the sun
+            model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f)); //translation to earths location
+
+            model = glm::rotate(model, (float)glfwGetTime()*3, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around earth
+            model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)); //translating away from earth
+
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around self axis
+            model = glm::scale(model, glm::vec3(0.04f, 0.04f, 0.04f)); //downscaling
+            moonShader.setMat4("model", model);
+            ourModel.Draw(moonShader);
+
+            //sun
+            sunShader.use();
+            sunShader.setInt("texture1", 3);
+
+            sunShader.setMat4("projection", projection);
+            sunShader.setMat4("view", view);
+
+            model = glm::mat4(1.0f);
+            //model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
+            //model = glm::translate(model, glm::vec3(6.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+            sunShader.setMat4("model", model);
+            ourModel.Draw(sunShader);
+
+            // draw skybox as last
+            glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+            skyboxShader.use();
+            view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+            skyboxShader.setMat4("view", view);
+            skyboxShader.setMat4("projection", projection);
+            //mars
+
+            // skybox cube
+            glBindVertexArray(skyboxVAO);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glBindVertexArray(0);
+            glDepthFunc(GL_LESS); // set depth function back to default
+
+
+            // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+            // -------------------------------------------------------------------------------
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
         glfwPollEvents();
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteVertexArrays(1, &skyboxVAO);if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     glDeleteBuffers(1, &skyboxVAO);
 
     glfwTerminate();
@@ -336,7 +352,6 @@ int main() {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -382,6 +397,12 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS){
+        paused = !paused;
+    }
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+        glfwSetWindowShouldClose(window, true);
+    }
 }
 
 unsigned int loadTexture(char const * path)

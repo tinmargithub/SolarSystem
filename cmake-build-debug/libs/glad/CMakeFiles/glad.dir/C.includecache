@@ -18,7 +18,7 @@ stdint.h
 KHR/khrplatform.h
 -
 
-/home/timur/Desktop/RG/projectSolarSystem/libs/glad/src/glad.c
+/home/timur/Desktop/RG/github/SolarSystem/libs/glad/src/glad.c
 stdio.h
 -
 stdlib.h
