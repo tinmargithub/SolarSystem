@@ -30,6 +30,8 @@ unsigned int loadTexture(char const * path);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
+void setSpotLight(const Shader &lightingShader);
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -244,23 +246,25 @@ int main() {
 
             // earth
             earthShader.use();
+
+            setSpotLight(earthShader);
+
             earthShader.setInt("material.diffuse", 0);
             earthShader.setInt("material.specular", 1);
-
 
             earthShader.setVec3("light.position", 0.0f, 0.0f, 0.0f);
             earthShader.setVec3("viewPos", camera.Position);
 
             earthShader.setMat4("projection", projection);
             earthShader.setMat4("view", view);
-            earthShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-            earthShader.setVec3("light.diffuse", 0.6f, 0.6f, 0.6f);
+            earthShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+            earthShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
             earthShader.setVec3("light.specular", 0.1f, 0.1f, 0.1f);
             earthShader.setFloat("material.shininess", 2.0f);
 
             model = glm::mat4(1.0f);
             model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f));   // rotation around the sun
-            model = glm::translate(model, glm::vec3(15.0f, 0.0f, 0.0f));                    //translating it away from the sun
+            model = glm::translate(model, glm::vec3(15.0f, 0.0f, 0.0f));                    //translating away from the sun
 
             model = glm::rotate(model, (float)glm::radians(23.5f), glm::vec3(0.0f, 0.0f, 1.0f));    //earths lean
             model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));      //rotation around self y-axis
@@ -271,6 +275,9 @@ int main() {
 
             //moon
             moonShader.use();
+
+            setSpotLight(moonShader);
+
             moonShader.setInt("texture1", 2);
 
             moonShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -336,7 +343,7 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &skyboxVAO);if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVAO);
 
     glfwTerminate();
@@ -465,4 +472,18 @@ unsigned int loadCubemap(vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+void setSpotLight(const Shader &lightingShader){
+    // spotLight
+    lightingShader.setVec3("spotLight.position", camera.Position);
+    lightingShader.setVec3("spotLight.direction", camera.Front);
+    lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+    lightingShader.setVec3("spotLight.diffuse", 0.9f, 0.9f, 0.9f);
+    lightingShader.setVec3("spotLight.specular", 0.1f, 0.1f, 0.1f);
+    lightingShader.setFloat("spotLight.constant", 1.0f);
+    lightingShader.setFloat("spotLight.linear", 0.09);
+    lightingShader.setFloat("spotLight.quadratic", 0.032);
+    lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 }
