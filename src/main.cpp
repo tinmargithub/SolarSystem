@@ -66,13 +66,12 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
     // glfw window creation
     // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
@@ -101,6 +100,11 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_MULTISAMPLE);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     // build and compile shaders
     // -------------------------
@@ -256,10 +260,10 @@ int main() {
 
             model = glm::mat4(1.0f);
             model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f));   // rotation around the sun
-            model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f));                    //translating it away from the sun
+            model = glm::translate(model, glm::vec3(15.0f, 0.0f, 0.0f));                    //translating it away from the sun
 
             model = glm::rotate(model, (float)glm::radians(23.5f), glm::vec3(0.0f, 0.0f, 1.0f));    //earths lean
-            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));      //rotation around self y axis
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));      //rotation around self y-axis
 
             model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// downscaling
             earthShader.setMat4("model", model);
@@ -280,12 +284,12 @@ int main() {
 
 
             model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the sun
-            model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f)); //translation to earths location
+            model = glm::translate(model, glm::vec3(15.0f, 0.0f, 0.0f)); //translation to earths location
 
             model = glm::rotate(model, (float)glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // tilt of the orbit
 
             model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around earth
-            model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)); //translating away from earth
+            model = glm::translate(model, glm::vec3(4.0f, 0.0f, 0.0f)); //translating away from earth
 
             model = glm::rotate(model, (float)glfwGetTime()/20, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around self axis
             model = glm::scale(model, glm::vec3(0.075f, 0.075f, 0.075f)); //downscaling
@@ -300,8 +304,6 @@ int main() {
             sunShader.setMat4("view", view);
 
             model = glm::mat4(1.0f);
-            //model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
-            //model = glm::translate(model, glm::vec3(6.0f, 0.0f, 0.0f));
             model = glm::rotate(model, (float)glfwGetTime()/20, glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             sunShader.setMat4("model", model);
