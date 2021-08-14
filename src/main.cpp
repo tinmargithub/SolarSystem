@@ -37,7 +37,7 @@ const unsigned int SCR_HEIGHT = 600;
 // camera
 bool paused = false;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 20.0f));
+Camera camera(glm::vec3(6.0f, 0.0f, 20.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -45,6 +45,7 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
 
 struct PointLight {
     glm::vec3 position;
@@ -203,8 +204,8 @@ int main() {
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
-        while(!paused){
+        //processInput(window);
+       // while(!paused){
             // per-frame time logic
             // --------------------
             float currentFrame = glfwGetTime();
@@ -213,23 +214,12 @@ int main() {
 
             // input
             // -----
-            //processInput(window);
+            processInput(window);
 
             // render
             // ------
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            // draw scene as normal
-            //shader.use();
-            glm::mat4 model = glm::mat4(1.0f);
-            glm::mat4 view = camera.GetViewMatrix();
-            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-            //shader.setMat4("model", model);
-            //shader.setMat4("view", view);
-            //shader.setMat4("projection", projection);
-
-
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, earthTexture);
@@ -242,16 +232,17 @@ int main() {
 
             glBindVertexArray(0);
 
+            //
+            glm::mat4 model;
+            // view/projection transformations
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+
+            // earth
             earthShader.use();
             earthShader.setInt("material.diffuse", 0);
             earthShader.setInt("material.specular", 1);
 
-
-            // view/projection transformations
-            projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-            view = camera.GetViewMatrix();
-
-            // earth
 
             earthShader.setVec3("light.position", 0.0f, 0.0f, 0.0f);
             earthShader.setVec3("viewPos", camera.Position);
@@ -291,11 +282,13 @@ int main() {
             model = glm::rotate(model, (float)glfwGetTime()/10, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the sun
             model = glm::translate(model, glm::vec3(10.0f, 0.0f, 0.0f)); //translation to earths location
 
-            model = glm::rotate(model, (float)glfwGetTime()*3, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around earth
+            model = glm::rotate(model, (float)glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // tilt of the orbit
+
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around earth
             model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)); //translating away from earth
 
-            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around self axis
-            model = glm::scale(model, glm::vec3(0.04f, 0.04f, 0.04f)); //downscaling
+            model = glm::rotate(model, (float)glfwGetTime()/20, glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around self axis
+            model = glm::scale(model, glm::vec3(0.075f, 0.075f, 0.075f)); //downscaling
             moonShader.setMat4("model", model);
             ourModel.Draw(moonShader);
 
@@ -309,7 +302,7 @@ int main() {
             model = glm::mat4(1.0f);
             //model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
             //model = glm::translate(model, glm::vec3(6.0f, 0.0f, 0.0f));
-            model = glm::rotate(model, (float)glfwGetTime()/4, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, (float)glfwGetTime()/20, glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             sunShader.setMat4("model", model);
             ourModel.Draw(sunShader);
@@ -335,8 +328,8 @@ int main() {
             // -------------------------------------------------------------------------------
             glfwSwapBuffers(window);
             glfwPollEvents();
-        }
-        glfwPollEvents();
+        //}
+       // glfwPollEvents();
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
